@@ -1,6 +1,8 @@
 package peng.cheng.springboot.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import peng.cheng.springboot.common.Response;
 import peng.cheng.springboot.entity.Article;
@@ -41,19 +43,37 @@ public class ArticleRestController {
     @PutMapping
     public Response updateArticle(@RequestBody Article article){
         log.info("updateArticle:{}", article);
-        articles.add(article);
-        return Response.success(article);
+        Article oldArticle = articles.stream().filter(entity -> article.getId().equals(entity.getId())).collect(Collectors.toList()).get(0);
+        if (!StringUtils.isEmpty(article.getAuthor())){
+            oldArticle.setAuthor(article.getAuthor());
+        }
+        if (!StringUtils.isEmpty(article.getContent())){
+            oldArticle.setContent(article.getContent());
+        }
+        if (!StringUtils.isEmpty(article.getTitle())){
+            oldArticle.setTitle(article.getTitle());
+        }
+        if (!CollectionUtils.isEmpty(article.getReaders())){
+            oldArticle.setReaders(article.getReaders());
+        }
+        articles.add(oldArticle);
+        return Response.success(oldArticle);
     }
 
     @GetMapping("{id}")
     public Response getArticle(@PathVariable Long id){
-        List<Article> collect = articles.stream().filter(entity -> id.equals(entity.getId())).collect(Collectors.toList());
-        Article article = collect.get(0);
-        return Response.success(article);
+        return Response.success(articles.stream().filter(entity -> id.equals(entity.getId())).collect(Collectors.toList()).get(0));
     }
 
     @GetMapping
     public Response getArticles(){
+        return Response.success(articles);
+    }
+
+    @DeleteMapping("{id}")
+    public Response deleteArticles(@PathVariable String id){
+        log.info("deleteArticles{}",id);
+        articles.remove(articles.stream().filter(entity -> Long.parseLong(id)==entity.getId()).collect(Collectors.toList()).get(0));
         return Response.success(articles);
     }
 }
